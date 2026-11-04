@@ -47,7 +47,7 @@
       </div>
     </div>
 
-    <!-- Walkthrough Scene Navigation Pills (Matches the 6 Scenes in the Design) -->
+    <!-- Walkthrough Scene Navigation Pills (Compact, non-overlapping design) -->
     <nav class="scene-nav" id="scene-nav">
       <button class="scene-btn active" data-scene="1">
         <span class="badge">1</span>
@@ -55,19 +55,19 @@
       </button>
       <button class="scene-btn" data-scene="2">
         <span class="badge">2</span>
-        <span class="label">Solar Energy</span>
+        <span class="label">Solar</span>
       </button>
       <button class="scene-btn" data-scene="3">
         <span class="badge">3</span>
-        <span class="label">Smart Light</span>
+        <span class="label">Lighting</span>
       </button>
       <button class="scene-btn" data-scene="4">
         <span class="badge">4</span>
-        <span class="label">HVAC &amp; Window</span>
+        <span class="label">HVAC</span>
       </button>
       <button class="scene-btn" data-scene="5">
         <span class="badge">5</span>
-        <span class="label">Green Roof</span>
+        <span class="label">Roof</span>
       </button>
       <button class="scene-btn" data-scene="6">
         <span class="badge">6</span>
@@ -75,7 +75,7 @@
       </button>
       <button class="scene-btn sandbox-pill" data-scene="sandbox">
         <i class="fa-solid fa-gamepad"></i>
-        <span class="label">Free Sandbox</span>
+        <span class="label">Sandbox</span>
       </button>
     </nav>
 
@@ -176,6 +176,7 @@
           <div class="actuators-status-row">
             <span class="act-chip" id="chip-light"><i class="fa-solid fa-lightbulb"></i> LED: <strong id="chip-light-state">OFF</strong></span>
             <span class="act-chip" id="chip-fan"><i class="fa-solid fa-fan"></i> Fan: <strong id="chip-fan-state">OFF</strong></span>
+            <span class="act-chip" id="chip-exhaust"><i class="fa-solid fa-wind"></i> Exhaust: <strong id="chip-exhaust-state">OFF</strong></span>
             <span class="act-chip" id="chip-window"><i class="fa-solid fa-door-open"></i> Window: <strong id="chip-window-state">CLOSED</strong></span>
           </div>
         </div>
@@ -349,7 +350,8 @@
           <button class="cam-preset-btn" data-sensor-cam="pir"><i class="fa-solid fa-person-walking"></i> PIR Motion</button>
           <button class="cam-preset-btn" data-sensor-cam="dht"><i class="fa-solid fa-temperature-half"></i> DHT11 Temp</button>
           <button class="cam-preset-btn" data-sensor-cam="ldr"><i class="fa-solid fa-sun"></i> LDR Light</button>
-          <button class="cam-preset-btn" data-sensor-cam="servo"><i class="fa-solid fa-door-open"></i> Servo &amp; Fan</button>
+          <button class="cam-preset-btn" data-sensor-cam="servo"><i class="fa-solid fa-window-maximize"></i> Window</button>
+          <button class="cam-preset-btn" data-sensor-cam="exhaust"><i class="fa-solid fa-wind"></i> Exhaust Fan</button>
         </div>
       </div>
 

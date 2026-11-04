@@ -169,14 +169,14 @@ canvas {
    ========================================================================== */
 .top-nav {
   position: absolute;
-  top: 16px;
-  left: 20px;
-  right: 20px;
+  top: 14px;
+  left: 16px;
+  right: 16px;
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   pointer-events: none;
 }
 
@@ -187,14 +187,15 @@ canvas {
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 8px 16px 8px 10px;
+  gap: 10px;
+  padding: 6px 14px 6px 8px;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
 }
 
 .brand-badge {
@@ -225,45 +226,47 @@ canvas {
   display: block;
 }
 
-/* Scene Navigation Buttons */
+/* Scene Navigation Buttons - Compact, sleek, zero collision */
 .scene-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 4px;
+  padding: 4px 6px;
   background: var(--bg-card);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
 }
 
 .scene-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 14px;
+  gap: 5px;
+  padding: 5px 9px;
   background: transparent;
   border: none;
   color: var(--text-muted);
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   border-radius: var(--radius-full);
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
 .scene-btn .badge {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--text-muted);
   transition: all var(--transition-fast);
@@ -271,13 +274,13 @@ canvas {
 
 .scene-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .scene-btn.active {
   background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
-  box-shadow: 0 4px 16px var(--emerald-glow);
+  box-shadow: 0 4px 14px var(--emerald-glow);
 }
 
 .scene-btn.active .badge {
@@ -287,14 +290,15 @@ canvas {
 
 .scene-btn.sandbox-pill {
   border-left: 1px solid rgba(255, 255, 255, 0.12);
-  margin-left: 4px;
+  margin-left: 3px;
+  padding-left: 8px;
   color: var(--cyan-water);
 }
 
 .scene-btn.sandbox-pill.active {
   background: linear-gradient(135deg, #06b6d4, #0284c7);
   color: #fff;
-  box-shadow: 0 4px 16px var(--cyan-glow);
+  box-shadow: 0 4px 14px var(--cyan-glow);
 }
 
 /* Nav Actions */

@@ -25,6 +25,9 @@ const state = {
   roomLightOn: false,     // Ground floor LED fixture
   fanRunning: false,      // DC Ceiling Fan
   fanSpeed: 0,            // RPM multiplier
+  exhaustRunning: false,  // High-Power Opposite Wall Exhaust Fan
+  exhaustSpeed: 0,        // Air CFM multiplier
+  exhaustLoadWatts: 35,   // Wattage when active
   windowOpenAngle: 0,     // 0 (closed) to 45 deg (open)
   targetWindowAngle: 0,
   
@@ -77,6 +80,7 @@ let pirBeamCone, pirRadarRings = [], pirBadgeObj, pirLedLight;
 let dht11BadgeObj, dht11AuraMesh, dht11HeatWaves;
 let ldrBadgeObj, ldrHandMesh, ldrSpotBeam;
 let servoBadgeObj, ledBadgeObj;
+let exhaustFanMesh, exhaustFanBlades, exhaustParticles, exhaustBadgeObj;
 let sensorHudGroup;
 let logicPulseMesh, logicPulsePoints = [];
 
@@ -286,7 +290,7 @@ function createSensorBadgeSprite(title, value, statusColor) {
     depthWrite: false
   });
   const sprite = new THREE.Sprite(spriteMat);
-  sprite.scale.set(2.4, 0.65, 1);
+  sprite.scale.set(1.65, 0.45, 1);
   sprite.renderOrder = 999;
 
   return {
@@ -885,9 +889,9 @@ function buildIndoorSmartSensorsAndHVAC() {
   pirBeamCone.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), pirDir.clone().normalize());
   roomGroup.add(pirBeamCone);
 
-  // Floating 3D Holographic PIR Badge
+  // Floating 3D Holographic PIR Badge (Rear-Left Corner Ceiling)
   pirBadgeObj = createSensorBadgeSprite('PIR MOTION SENSOR', 'DETECTED (OCCUPIED)', '#10b981');
-  pirBadgeObj.sprite.position.set(-4.5, 4.15, -3.6);
+  pirBadgeObj.sprite.position.set(-3.8, 3.55, -3.5);
   sensorHudGroup.add(pirBadgeObj.sprite);
 
   // 2. DHT11 Digital Temperature & Humidity Sensor (Wall Mount)
@@ -933,9 +937,9 @@ function buildIndoorSmartSensorsAndHVAC() {
   }));
   roomGroup.add(dht11HeatWaves);
 
-  // Floating 3D Holographic DHT11 Badge
+  // Floating 3D Holographic DHT11 Badge (Rear Center Wall)
   dht11BadgeObj = createSensorBadgeSprite('DHT11 TEMP & HUMIDITY', '24.5°C (NORMAL)', '#06b6d4');
-  dht11BadgeObj.sprite.position.set(-2.0, 3.25, -3.75);
+  dht11BadgeObj.sprite.position.set(-0.8, 2.5, -3.75);
   sensorHudGroup.add(dht11BadgeObj.sprite);
 
   // 3. LDR Light Sensor (Window Sill Mount)
@@ -981,9 +985,9 @@ function buildIndoorSmartSensorsAndHVAC() {
   ldrSpotBeam.position.set(4.7, 3.0, 0.4);
   roomGroup.add(ldrSpotBeam);
 
-  // Floating 3D Holographic LDR Badge
+  // Floating 3D Holographic LDR Badge (Window Sill Mount)
   ldrBadgeObj = createSensorBadgeSprite('LDR LIGHT SENSOR', '1,250 Lux (DAYLIGHT)', '#f59e0b');
-  ldrBadgeObj.sprite.position.set(4.7, 2.15, 0.4);
+  ldrBadgeObj.sprite.position.set(4.85, 1.9, 0.4);
   sensorHudGroup.add(ldrBadgeObj.sprite);
 
   // -------------------------------------------------------------
@@ -1006,9 +1010,9 @@ function buildIndoorSmartSensorsAndHVAC() {
   roomPointLight.castShadow = true;
   roomGroup.add(roomPointLight);
 
-  // Floating 3D LED Badge
+  // Floating 3D LED Badge (Center Ceiling)
   ledBadgeObj = createSensorBadgeSprite('SMART LED FIXTURE', 'OFF (0W - SAVING)', '#10b981');
-  ledBadgeObj.sprite.position.set(0, 3.15, -1.0);
+  ledBadgeObj.sprite.position.set(0.6, 3.75, -0.8);
   sensorHudGroup.add(ledBadgeObj.sprite);
 
   // 2. Automatic Ceiling Fan (DHT11 Microclimate Control)
@@ -1061,10 +1065,87 @@ function buildIndoorSmartSensorsAndHVAC() {
   servoBody.position.set(4.85, 2.95, -0.9);
   roomGroup.add(servoBody);
 
-  // Floating 3D Servo Window Badge
+  // Floating 3D Servo Window Badge (Right Wall Window Frame)
   servoBadgeObj = createSensorBadgeSprite('SG90 SERVO MOTOR', 'WINDOW CLOSED (0°)', '#64748b');
-  servoBadgeObj.sprite.position.set(4.85, 3.45, 0.4);
+  servoBadgeObj.sprite.position.set(4.85, 3.65, 0.4);
   sensorHudGroup.add(servoBadgeObj.sprite);
+
+  // -------------------------------------------------------------
+  // 4. Industrial Wall Exhaust Fan (Mounted on OPPOSITE Wall: Left Wall at x = -4.85)
+  // Emits Internal Room Air Directly Outwards Through Left Wall
+  // -------------------------------------------------------------
+  const exhaustGroup = new THREE.Group();
+  exhaustGroup.position.set(-4.85, 2.85, -1.2);
+
+  // Square Industrial Wall Shroud / Mounting Flange (Penetrates left wall)
+  const shroudMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5, metalness: 0.6 });
+  const shroud = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.05, 1.05), shroudMat);
+  exhaustGroup.add(shroud);
+
+  // Cylindrical Wall Cowl Duct (Passing through the left wall along X-axis)
+  const ductMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+  const duct = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.38, 24), ductMat);
+  duct.rotation.z = Math.PI / 2; // Aligned through left wall
+  exhaustGroup.add(duct);
+
+  // Outer & Inner Protective Wire Grille Guards
+  const guardMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
+  const guardOuter = new THREE.Mesh(new THREE.TorusGeometry(0.40, 0.014, 8, 24), guardMat);
+  guardOuter.rotation.y = Math.PI / 2;
+  guardOuter.position.x = -0.19; // Outside yard face
+  const guardInner = new THREE.Mesh(new THREE.TorusGeometry(0.40, 0.014, 8, 24), guardMat);
+  guardInner.rotation.y = Math.PI / 2;
+  guardInner.position.x = 0.19;  // Inside room face
+  exhaustGroup.add(guardOuter, guardInner);
+
+  // Cross wire braces
+  const braceH = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.02, 0.8), guardMat);
+  const braceV = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.8, 0.02), guardMat);
+  exhaustGroup.add(braceH, braceV);
+
+  // Aerodynamic Impeller Blades (Rotates around X-axis to emit air outwards)
+  exhaustFanBlades = new THREE.Group();
+  exhaustFanBlades.position.x = 0.02;
+
+  const motorBullet = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.16, 16), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+  motorBullet.rotation.z = Math.PI / 2;
+  exhaustFanBlades.add(motorBullet);
+
+  const bladeMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3, metalness: 0.4 });
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI * 2) / 4;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.36, 0.09), bladeMat);
+    blade.position.set(0, Math.sin(angle) * 0.21, Math.cos(angle) * 0.21);
+    blade.rotation.x = angle + 0.35; // Aerodynamic pitch angle
+    exhaustFanBlades.add(blade);
+  }
+  exhaustGroup.add(exhaustFanBlades);
+  exhaustFanMesh = exhaustGroup;
+  roomGroup.add(exhaustGroup);
+
+  // Dynamic Warm Exhaust Heat Particles (Emits internal room air outwards through left wall)
+  const exhaustCount = 80;
+  const exhaustGeo = new THREE.BufferGeometry();
+  const exhaustPos = new Float32Array(exhaustCount * 3);
+  for (let i = 0; i < exhaustCount * 3; i += 3) {
+    exhaustPos[i] = -4.85 - Math.random() * 3.5; // From left wall outwards (-X)
+    exhaustPos[i + 1] = 2.85 + (Math.random() - 0.5) * 0.6;
+    exhaustPos[i + 2] = -1.2 + (Math.random() - 0.5) * 0.6;
+  }
+  exhaustGeo.setAttribute('position', new THREE.BufferAttribute(exhaustPos, 3));
+  exhaustParticles = new THREE.Points(exhaustGeo, new THREE.PointsMaterial({
+    color: 0xf59e0b,
+    size: 0.18,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending
+  }));
+  roomGroup.add(exhaustParticles);
+
+  // Floating 3D Holographic Exhaust Fan Badge (Opposite Left Wall)
+  exhaustBadgeObj = createSensorBadgeSprite('SMART EXHAUST FAN', 'IDLE (OFF)', '#64748b');
+  exhaustBadgeObj.sprite.position.set(-4.85, 3.65, -1.2);
+  sensorHudGroup.add(exhaustBadgeObj.sprite);
 
   // Add the Sensor Holographic HUD Group
   roomGroup.add(sensorHudGroup);
@@ -1409,16 +1490,24 @@ function updateSensorLogicAndTelemetry() {
   state.roomLightOn = shouldLightBeOn;
 
   // 4. SMART TEMPERATURE & HVAC LOGIC (Unit 3 Syllabus):
-  // Rule: If Temperature >= 28.0°C -> Fan turns ON, Window Opens (Cross-Ventilation)
-  // Else: Fan turns OFF, Window closes
+  // Rule: If Temperature >= 28.0°C:
+  // - Ceiling Fan turns ON to circulate air
+  // - Servo Window on Right Wall opens (45°) for fresh cross-breeze intake
+  // - Wall Exhaust Fan on OPPOSITE Left Wall activates to emit internal hot air outside!
   if (state.ambientTemp >= 28.0) {
     state.fanRunning = true;
     state.fanSpeed = Math.min(3.0, 1.0 + (state.ambientTemp - 28.0) * 0.25);
     state.targetWindowAngle = THREE.MathUtils.degToRad(45); // Open 45 degrees
+    
+    state.exhaustRunning = true;
+    state.exhaustSpeed = Math.min(3.2, 1.2 + (state.ambientTemp - 28.0) * 0.3);
   } else {
     state.fanRunning = false;
     state.fanSpeed = 0;
     state.targetWindowAngle = 0; // Closed
+    
+    state.exhaustRunning = false;
+    state.exhaustSpeed = 0;
   }
 
   // 5. ENERGY FLOW CALCULATOR (Unit 1 & 2 Syllabus - Net-Zero Equation):
@@ -1429,6 +1518,7 @@ function updateSensorLogicAndTelemetry() {
   let totalLoad = state.baseLoadWatts;
   if (state.roomLightOn) totalLoad += state.lightLoadWatts;
   if (state.fanRunning) totalLoad += Math.round(state.fanLoadWatts * (state.fanSpeed / 1.5));
+  if (state.exhaustRunning) totalLoad += Math.round(state.exhaustLoadWatts * (state.exhaustSpeed / 1.5));
   state.currentLoadWatts = totalLoad;
 
   // Net Energy Balance (Surplus or Deficit)
@@ -1519,6 +1609,16 @@ function updateSensorLogicAndTelemetry() {
       'SMART LED FIXTURE',
       state.roomLightOn ? 'ACTIVE (40W - 100%)' : 'OFF (0W - SAVING)',
       state.roomLightOn ? '#facc15' : '#10b981'
+    );
+  }
+
+  // F. Industrial Wall Exhaust Fan (Opposite Left Wall)
+  if (exhaustBadgeObj) {
+    const isExhaustActive = state.ambientTemp >= 28.0;
+    exhaustBadgeObj.update(
+      'SMART EXHAUST FAN',
+      isExhaustActive ? 'EMITTING HOT AIR (280 CFM)' : 'IDLE (OFF - 0 CFM)',
+      isExhaustActive ? '#f59e0b' : '#64748b'
     );
   }
 
@@ -1657,6 +1757,12 @@ function syncUIElements() {
   document.getElementById('chip-fan-state').textContent = state.fanRunning ? `ON (${Math.round(state.fanSpeed * 90)} RPM)` : 'OFF';
   fanChip.className = state.fanRunning ? 'act-chip active' : 'act-chip';
 
+  const exhaustChip = document.getElementById('chip-exhaust');
+  if (exhaustChip) {
+    document.getElementById('chip-exhaust-state').textContent = state.exhaustRunning ? `ON (${Math.round(state.exhaustSpeed * 120)} CFM)` : 'OFF';
+    exhaustChip.className = state.exhaustRunning ? 'act-chip active' : 'act-chip';
+  }
+
   const windowChip = document.getElementById('chip-window');
   document.getElementById('chip-window-state').textContent = state.ambientTemp >= 28.0 ? 'OPEN (45°)' : 'CLOSED';
   windowChip.className = state.ambientTemp >= 28.0 ? 'act-chip active' : 'act-chip';
@@ -1760,12 +1866,13 @@ const scenesData = {
   },
   4: {
     tag: 'SCENE 4 OF 6',
-    title: 'Temperature Control & Auto Window (DHT11 + HVAC)',
-    narrative: 'Show temperature increasing beyond 28°C: The DHT11 sensor detects excess heat, signaling the SG90 servo motor to pivot the window open for natural cross-breeze while activating the DC ceiling fan.',
+    title: 'Cross-Ventilation & Exhaust Fan (DHT11 + Window + Exhaust)',
+    narrative: 'Show temperature increasing beyond 28°C: The DHT11 sensor detects excess heat, signaling the servo window on the right wall to open for cool cross-breeze, while the industrial exhaust fan on the opposite left wall activates to emit internal warm air outdoors!',
     bullets: [
-      '<i class="fa-solid fa-temperature-arrow-up"></i> DHT11 Microclimate Sensing',
-      '<i class="fa-solid fa-fan"></i> Variable-Speed DC Ceiling Fan',
-      '<i class="fa-solid fa-wind"></i> Motorized Servo Window Cross-Ventilation'
+      '<i class="fa-solid fa-temperature-arrow-up"></i> DHT11 Microclimate Heat Detection',
+      '<i class="fa-solid fa-window-maximize"></i> Right Wall Servo Window (Cool Air Intake)',
+      '<i class="fa-solid fa-wind"></i> Opposite Wall Exhaust Fan (Emits Internal Heat Out)',
+      '<i class="fa-solid fa-fan"></i> Variable-Speed DC Ceiling Circulation Fan'
     ],
     camPos: { x: 6.8, y: 3.5, z: 2.5 },
     target: { x: 2.5, y: 2.4, z: 0.2 },
@@ -1992,7 +2099,7 @@ function setupEventListeners() {
     state.ambientTemp = 34.0;
     document.getElementById('slider-temp').value = 34.0;
     updateSensorLogicAndTelemetry();
-    showToast('<i class="fa-solid fa-fire text-rose"></i> Heated DHT11 Sensor (34.0°C)! Window opens & Fan activates!');
+    showToast('<i class="fa-solid fa-fire text-rose"></i> Heated DHT11 Sensor (34.0°C)! Window Opens &amp; Opposite Wall Exhaust Fan Emits Hot Air!');
   });
 
   // 4. Cool Down to Ambient Comfort
@@ -2003,7 +2110,7 @@ function setupEventListeners() {
     state.ambientTemp = 24.0;
     document.getElementById('slider-temp').value = 24.0;
     updateSensorLogicAndTelemetry();
-    showToast('<i class="fa-solid fa-snowflake text-cyan"></i> Temperature Set to 24.0°C: Fan & Window Reset.');
+    showToast('<i class="fa-solid fa-snowflake text-cyan"></i> Temperature Set to 24.0°C: Window &amp; Exhaust Fan Reset.');
   });
 
   // Sliders: Time of Day (Automatically Drives Solar Heat Gain)
@@ -2107,7 +2214,10 @@ function setupEventListeners() {
         showToast('<i class="fa-solid fa-sun text-amber"></i> Focusing LDR Photocell Daylight Sensor');
       } else if (targetSensor === 'servo') {
         tweenCamera({ x: 2.2, y: 3.0, z: 2.6 }, { x: 4.85, y: 2.5, z: 0.4 }, 1100);
-        showToast('<i class="fa-solid fa-door-open text-cyan"></i> Focusing Motorized Servo Window &amp; Fan');
+        showToast('<i class="fa-solid fa-window-maximize text-cyan"></i> Focusing Motorized Servo Window &amp; Fan');
+      } else if (targetSensor === 'exhaust') {
+        tweenCamera({ x: -7.6, y: 3.2, z: 0.6 }, { x: -4.85, y: 2.85, z: -1.2 }, 1100);
+        showToast('<i class="fa-solid fa-wind text-cyan"></i> Focusing Opposite-Wall Exhaust Fan (Emitting Hot Air)');
       }
     });
   });
@@ -2202,9 +2312,12 @@ function animate() {
   const delta = clock.getDelta();
   const time = clock.getElapsedTime();
 
-  // 1. Ceiling Fan Blades Rotation
+  // 1. Ceiling Fan & Opposite Wall Exhaust Fan Blades Rotation
   if (ceilingFanBlades && state.fanRunning) {
     ceilingFanBlades.rotation.y += delta * state.fanSpeed * 9.0;
+  }
+  if (exhaustFanBlades && state.exhaustRunning) {
+    exhaustFanBlades.rotation.x += delta * state.exhaustSpeed * 16.0; // Rotates to emit air through left wall
   }
 
   // 2. Servo Window Smooth Hinging (Opening & Closing)
@@ -2212,7 +2325,7 @@ function animate() {
     servoWindowSash.rotation.y = THREE.MathUtils.lerp(servoWindowSash.rotation.y, state.targetWindowAngle, 0.08);
   }
 
-  // 3. Wind Breeze Particles Animation
+  // 3. Wind Breeze Particles & Opposite Wall Exhaust Airflow Animation
   if (windParticles) {
     const isWindowOpen = servoWindowSash && servoWindowSash.rotation.y > 0.15;
     windParticles.material.opacity = THREE.MathUtils.lerp(
@@ -2231,6 +2344,29 @@ function animate() {
         }
       }
       windParticles.geometry.attributes.position.needsUpdate = true;
+    }
+  }
+
+  // Opposite Wall Exhaust Heat Evacuation (Emits internal room air outwards through left wall)
+  if (exhaustParticles) {
+    const isExhaustActive = state.exhaustRunning;
+    exhaustParticles.material.opacity = THREE.MathUtils.lerp(
+      exhaustParticles.material.opacity,
+      isExhaustActive ? 0.85 : 0,
+      0.08
+    );
+    if (isExhaustActive) {
+      const epos = exhaustParticles.geometry.attributes.position.array;
+      for (let i = 0; i < epos.length; i += 3) {
+        epos[i] -= delta * 5.5; // Blast outwards through left wall (-X)
+        epos[i + 1] += Math.sin(time * 5 + i) * 0.015;
+        if (epos[i] < -8.2) {
+          epos[i] = -4.6 + Math.random() * 0.3; // Reset at fan intake on wall
+          epos[i + 1] = 2.85 + (Math.random() - 0.5) * 0.55;
+          epos[i + 2] = -1.2 + (Math.random() - 0.5) * 0.55;
+        }
+      }
+      exhaustParticles.geometry.attributes.position.needsUpdate = true;
     }
   }
 

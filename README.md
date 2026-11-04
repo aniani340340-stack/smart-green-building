@@ -40,12 +40,13 @@ $$\text{Net-Zero Equation: } E_{\text{Generated (Solar)}} \ge E_{\text{Consumed 
      $$\text{LED}_{\text{ON}} = (\text{Lux} < 300\text{ lx}) \land (\text{Occupancy} = \text{True})$$
    - Prevents electricity wastage during bright daylight or in unoccupied rooms.
 
-4. **Scene 4: Microclimate Temperature Control & Cross-Ventilation (DHT11 + Fan + Servo Window)**
+4. **Scene 4: Microclimate Temperature Control & Cross-Ventilation (DHT11 + Window + Opposite-Wall Exhaust)**
    - **DHT11 Sensor** continuously monitors indoor temperature and humidity.
    - When temperature rises $\ge 28^\circ\text{C}$:
-     - **SG90 Servo Motor** pivots the window sash open $45^\circ$ for natural cross-breeze.
-     - **DC Ceiling Fan** spins up to exhaust warm indoor air.
-     - Cyan breeze airflow particles stream through the opened window.
+     - **SG90 Servo Window** on the right wall pivots open $45^\circ$ for fresh cross-breeze intake.
+     - **Industrial Wall Exhaust Fan** on the **opposite (left) wall** activates to emit internal warm air outwards.
+     - **DC Ceiling Fan** circulates indoor air.
+     - Amber exhaust airflow particles stream outwards through the left wall, proving heat extraction.
 
 5. **Scene 5: Green Roof Thermal Insulation & Passive Cooling**
    - Sedum succulents and turf vegetation absorb intense solar radiation.
@@ -71,7 +72,7 @@ When demonstrating to your teacher, use the **Live Demo Triggers** panel on the 
 |---|---|---|---|
 | **1. Daylight Test** | Click **"Cover LDR Hand"** | LDR Lux drops to 45 Lux $\rightarrow$ Room LED turns **ON** instantly. | *"Respected Teacher, the LDR detects that daylight is insufficient. When daylight is restored, it turns off automatically to conserve power."* |
 | **2. Motion Test** | Click **"Toggle PIR Motion"** | Avatar disappears $\rightarrow$ Room LED turns **OFF** even in the dark. | *"Our dual-condition logic ensures electricity is never wasted when the room is empty."* |
-| **3. Temperature Test** | Click **"Heat DHT11 (34°C)"** | Temperature spikes $\rightarrow$ Servo window hinges open $45^\circ$ $\rightarrow$ Fan accelerates. | *"When indoor microclimate overheats, the microcontroller first uses passive cross-ventilation before active mechanical cooling."* |
+| **3. Temperature Test** | Click **"Heat DHT11 (34°C)"** | Temperature spikes $\rightarrow$ Servo window opens $45^\circ$ on right wall $\rightarrow$ Exhaust fan on opposite left wall activates and emits internal warm air outside! | *"When indoor microclimate overheats, the microcontroller triggers cross-ventilation: the right window brings in fresh air while the opposite-wall exhaust fan extracts internal heat outdoors."* |
 | **4. Rainwater Test** | Toggle **"Rainfall Weather"** | Rain falls $\rightarrow$ Downpipe streams water $\rightarrow$ Tank water level rises. | *"Rainfall is captured from the roof, filtered, and stored on-site to achieve water neutrality."* |
 
 ---
