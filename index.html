@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Net-Zero Energy Green Building - 3D Interactive Simulation</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Canvas Confetti for Celebration / Net-Zero Milestones -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- WebGL 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-content">
+      <div class="building-icon-pulse">
+        <i class="fa-solid fa-solar-panel"></i>
+      </div>
+      <h2>Smart Net-Zero Green Building</h2>
+      <p class="loader-subtitle">Loading 3D Architectural Systems, Sensors & Environment...</p>
+      <div class="progress-bar-container">
+        <div id="loader-progress" class="progress-bar-fill"></div>
+      </div>
+      <div class="loader-tips">Unit 1-5 Environmental Systems &amp; IoT Automations</div>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="top-nav">
+    <div class="brand">
+      <div class="brand-badge"><i class="fa-solid fa-leaf"></i> NET-ZERO</div>
+      <div class="brand-text">
+        <h1>Smart Green Building</h1>
+        <span class="sub-text">2-Floor IoT &amp; Renewable Architecture Model</span>
+      </div>
+    </div>
+
+    <!-- Walkthrough Scene Navigation Pills (Matches the 6 Scenes in the Design) -->
+    <nav class="scene-nav" id="scene-nav">
+      <button class="scene-btn active" data-scene="1">
+        <span class="badge">1</span>
+        <span class="label">Overview</span>
+      </button>
+      <button class="scene-btn" data-scene="2">
+        <span class="badge">2</span>
+        <span class="label">Solar Energy</span>
+      </button>
+      <button class="scene-btn" data-scene="3">
+        <span class="badge">3</span>
+        <span class="label">Smart Light</span>
+      </button>
+      <button class="scene-btn" data-scene="4">
+        <span class="badge">4</span>
+        <span class="label">HVAC &amp; Window</span>
+      </button>
+      <button class="scene-btn" data-scene="5">
+        <span class="badge">5</span>
+        <span class="label">Green Roof</span>
+      </button>
+      <button class="scene-btn" data-scene="6">
+        <span class="badge">6</span>
+        <span class="label">Rainwater</span>
+      </button>
+      <button class="scene-btn sandbox-pill" data-scene="sandbox">
+        <i class="fa-solid fa-gamepad"></i>
+        <span class="label">Free Sandbox</span>
+      </button>
+    </nav>
+
+    <!-- Top Right Action Controls -->
+    <div class="nav-actions">
+      <button id="btn-audio-toggle" class="icon-btn" title="Toggle Sound FX">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button id="btn-syllabus-modal" class="pill-btn primary" title="View Syllabus & Teacher Demo Guide">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Syllabus &amp; Demo</span>
+      </button>
+      <button id="btn-reset-cam" class="icon-btn" title="Reset Camera View">
+        <i class="fa-solid fa-video"></i>
+      </button>
+      <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Left Floating Dashboard: Real-time Energy & IoT Telemetry -->
+  <aside class="telemetry-panel" id="telemetry-panel">
+    <div class="panel-header">
+      <div class="header-title">
+        <i class="fa-solid fa-chart-line text-emerald"></i>
+        <h3>Live IoT &amp; Energy Telemetry</h3>
+      </div>
+      <span class="live-pill"><span class="blink-dot"></span> LIVE</span>
+    </div>
+
+    <!-- Net-Zero Power Status Card -->
+    <div class="stat-card net-zero-card" id="net-zero-card">
+      <div class="card-top">
+        <span class="card-label">Building Energy Status</span>
+        <span class="status-tag surplus" id="net-status-badge">NET SURPLUS</span>
+      </div>
+      <div class="net-value-row">
+        <span class="net-value" id="net-balance-val">+285</span>
+        <span class="unit">Watts</span>
+      </div>
+      <div class="power-meter-bar">
+        <div class="solar-bar" id="solar-meter-bar" style="width: 85%;"></div>
+        <div class="load-bar" id="load-meter-bar" style="width: 25%;"></div>
+      </div>
+      <div class="power-split-labels">
+        <span class="split-item text-amber"><i class="fa-solid fa-sun"></i> Solar: <strong id="solar-gen-val">340 W</strong></span>
+        <span class="split-item text-rose"><i class="fa-solid fa-bolt"></i> Load: <strong id="load-val">55 W</strong></span>
+      </div>
+    </div>
+
+    <!-- Sensor Monitoring Grid -->
+    <div class="telemetry-grid">
+      <!-- 1. Solar Irradiance -->
+      <div class="tele-box">
+        <div class="tele-icon bg-amber-light text-amber"><i class="fa-solid fa-solar-panel"></i></div>
+        <div class="tele-meta">
+          <span class="tele-title">Solar Radiation</span>
+          <span class="tele-data" id="solar-irradiance-val">820 W/m²</span>
+        </div>
+      </div>
+
+      <!-- 2. Ambient Light (LDR) -->
+      <div class="tele-box">
+        <div class="tele-icon bg-yellow-light text-yellow"><i class="fa-solid fa-sun"></i></div>
+        <div class="tele-meta">
+          <span class="tele-title">LDR Light Sensor</span>
+          <span class="tele-data" id="ldr-lux-val">1,250 Lux</span>
+          <span class="tele-sub" id="ldr-status-sub">Daylight Sufficient</span>
+        </div>
+      </div>
+
+      <!-- 3. Occupancy (PIR) -->
+      <div class="tele-box">
+        <div class="tele-icon bg-blue-light text-blue"><i class="fa-solid fa-person-walking"></i></div>
+        <div class="tele-meta">
+          <span class="tele-title">PIR Motion Sensor</span>
+          <span class="tele-data" id="pir-status-val">Occupied</span>
+          <span class="tele-sub text-emerald" id="pir-sub-status">Person in Room 1</span>
+        </div>
+      </div>
+
+      <!-- 4. Room Temp (DHT11) -->
+      <div class="tele-box">
+        <div class="tele-icon bg-red-light text-rose"><i class="fa-solid fa-temperature-half"></i></div>
+        <div class="tele-meta">
+          <span class="tele-title">DHT11 Temp &amp; Humidity</span>
+          <span class="tele-data" id="dht-temp-val">24.5 °C</span>
+          <span class="tele-sub" id="dht-hum-val">Humidity: 52% RH</span>
+        </div>
+      </div>
+
+      <!-- 5. Actuators State -->
+      <div class="tele-box full-width">
+        <div class="tele-icon bg-purple-light text-purple"><i class="fa-solid fa-microchip"></i></div>
+        <div class="tele-meta">
+          <span class="tele-title">Actuator Output States</span>
+          <div class="actuators-status-row">
+            <span class="act-chip" id="chip-light"><i class="fa-solid fa-lightbulb"></i> LED: <strong id="chip-light-state">OFF</strong></span>
+            <span class="act-chip" id="chip-fan"><i class="fa-solid fa-fan"></i> Fan: <strong id="chip-fan-state">OFF</strong></span>
+            <span class="act-chip" id="chip-window"><i class="fa-solid fa-door-open"></i> Window: <strong id="chip-window-state">CLOSED</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Rainwater Reservoir -->
+      <div class="tele-box full-width">
+        <div class="tele-icon bg-cyan-light text-cyan"><i class="fa-solid fa-droplet"></i></div>
+        <div class="tele-meta">
+          <div class="reservoir-header">
+            <span class="tele-title">Rainwater Harvesting Tank</span>
+            <span class="tele-data-sm" id="rain-harvest-val">42 / 100 L</span>
+          </div>
+          <div class="reservoir-meter">
+            <div class="reservoir-fill" id="reservoir-fill-bar" style="width: 42%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Green Building Eco Score -->
+    <div class="eco-summary-card">
+      <div class="eco-score-circle">
+        <svg viewBox="0 0 36 36" class="circular-chart green">
+          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <path class="circle" stroke-dasharray="96, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <text x="18" y="20.35" class="percentage">A+</text>
+        </svg>
+      </div>
+      <div class="eco-meta">
+        <strong>Net-Zero Rating: A+ Exemplary</strong>
+        <span>100% Clean Solar • Zero Grid Strain • 4.8 kg CO₂ Saved Daily</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Floating Panel: Live Teacher Demonstration Controls -->
+  <aside class="control-panel" id="control-panel">
+    <div class="panel-header">
+      <div class="header-title">
+        <i class="fa-solid fa-sliders text-cyan"></i>
+        <h3>Interactive Demo Controls</h3>
+      </div>
+      <button class="toggle-collapse-btn" id="btn-toggle-ctrls" title="Collapse/Expand Panel">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="ctrl-content">
+      <!-- Fast Live Test Triggers for Teachers/Examiners -->
+      <div class="ctrl-section">
+        <div class="section-label">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Live Demonstration Triggers
+        </div>
+        <div class="action-grid">
+          <button class="action-card-btn" id="btn-cover-ldr" title="Simulates placing your hand over the LDR light sensor">
+            <i class="fa-solid fa-hand"></i>
+            <span>Cover LDR Hand</span>
+            <small>Darkness Simulation</small>
+          </button>
+
+          <button class="action-card-btn" id="btn-toggle-pir" title="Simulates a person walking in or out of the room">
+            <i class="fa-solid fa-person-walking"></i>
+            <span id="label-pir-btn">Toggle PIR Motion</span>
+            <small>Occupancy Sensor</small>
+          </button>
+
+          <button class="action-card-btn" id="btn-heat-sensor" title="Simulates heating the DHT11 temperature sensor">
+            <i class="fa-solid fa-fire-flame-curved text-rose"></i>
+            <span>Heat DHT11 (34°C)</span>
+            <small>Triggers Fan &amp; Window</small>
+          </button>
+
+          <button class="action-card-btn" id="btn-cool-sensor" title="Returns temperature to comfortable ambient room level">
+            <i class="fa-solid fa-snowflake text-cyan"></i>
+            <span>Cool Temp (24°C)</span>
+            <small>Fan &amp; Window Reset</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- Environmental Adjustment Sliders -->
+      <div class="ctrl-section">
+        <div class="section-label">
+          <i class="fa-solid fa-cloud-sun"></i> Environment &amp; Microclimate
+        </div>
+
+        <!-- Sun Position / Time of Day -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span><i class="fa-solid fa-clock"></i> Time of Day:</span>
+            <span class="slider-badge" id="time-badge">12:30 PM (Noon)</span>
+          </div>
+          <input type="range" id="slider-time" min="6" max="22" step="0.25" value="12.5" class="custom-slider">
+          <div class="slider-ticks">
+            <span>6 AM</span>
+            <span>12 PM</span>
+            <span>6 PM</span>
+            <span>10 PM</span>
+          </div>
+        </div>
+
+        <!-- Temperature Slider -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span><i class="fa-solid fa-temperature-three-quarters text-rose"></i> Temperature:</span>
+            <span class="slider-badge" id="temp-badge">24.5 °C</span>
+          </div>
+          <input type="range" id="slider-temp" min="18" max="42" step="0.5" value="24.5" class="custom-slider temp-slider">
+          <div class="slider-ticks">
+            <span>18°C (Cool)</span>
+            <span class="threshold-marker">28°C Threshold</span>
+            <span>42°C (Hot)</span>
+          </div>
+          <div id="solar-thermal-status" class="thermal-link-badge">
+            <i class="fa-solid fa-sun text-amber"></i> Linked to Solar Irradiance
+          </div>
+        </div>
+
+        <!-- Rain Weather Toggle -->
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <i class="fa-solid fa-cloud-showers-heavy text-cyan"></i>
+            <div>
+              <strong>Rainfall Weather</strong>
+              <small>Harvests rainwater to tank</small>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="check-rain">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Architectural 3D Inspection Toggles -->
+      <div class="ctrl-section">
+        <div class="section-label">
+          <i class="fa-solid fa-cubes"></i> 3D Visualization Modes
+        </div>
+        <div class="view-toggles-grid">
+          <button class="toggle-mode-btn" id="btn-toggle-cutaway">
+            <i class="fa-solid fa-house-chimney-window"></i>
+            <span>Cutaway View</span>
+          </button>
+          <button class="toggle-mode-btn" id="btn-toggle-thermal">
+            <i class="fa-solid fa-fire"></i>
+            <span>Thermal Map</span>
+          </button>
+          <button class="toggle-mode-btn" id="btn-toggle-energy-flow">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Energy Particles</span>
+          </button>
+          <button class="toggle-mode-btn" id="btn-toggle-greenroof-layers">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Roof Strata</span>
+          </button>
+          <button class="toggle-mode-btn active" id="btn-toggle-sensor-hud">
+            <i class="fa-solid fa-tag"></i>
+            <span>3D Sensor Badges</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Sensor Camera Zoom -->
+      <div class="ctrl-section">
+        <div class="section-label">
+          <i class="fa-solid fa-magnifying-glass-plus text-emerald"></i> Zoom to Live Sensors
+        </div>
+        <div class="cam-presets">
+          <button class="cam-preset-btn" data-sensor-cam="pir"><i class="fa-solid fa-person-walking"></i> PIR Motion</button>
+          <button class="cam-preset-btn" data-sensor-cam="dht"><i class="fa-solid fa-temperature-half"></i> DHT11 Temp</button>
+          <button class="cam-preset-btn" data-sensor-cam="ldr"><i class="fa-solid fa-sun"></i> LDR Light</button>
+          <button class="cam-preset-btn" data-sensor-cam="servo"><i class="fa-solid fa-door-open"></i> Servo &amp; Fan</button>
+        </div>
+      </div>
+
+      <!-- Camera View Angle Quick Select -->
+      <div class="ctrl-section">
+        <div class="section-label">
+          <i class="fa-solid fa-camera"></i> Camera Perspectives
+        </div>
+        <div class="cam-presets">
+          <button class="cam-preset-btn active" data-cam="iso">Isometric</button>
+          <button class="cam-preset-btn" data-cam="roof">Roof &amp; Solar</button>
+          <button class="cam-preset-btn" data-cam="interior">Room 1 (IoT)</button>
+          <button class="cam-preset-btn" data-cam="window">Window &amp; Fan</button>
+          <button class="cam-preset-btn" data-cam="tank">Rainwater Tank</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Floating Walkthrough Control Deck (For the 6 Guided Scenes) -->
+  <footer class="walkthrough-deck" id="walkthrough-deck">
+    <div class="deck-container">
+      <div class="deck-meta">
+        <div class="scene-number-tag" id="scene-tag">SCENE 1 OF 6</div>
+        <h2 class="scene-title" id="scene-title">2-Floor Green Building Architecture</h2>
+      </div>
+
+      <div class="scene-narrative" id="scene-narrative">
+        An energy-efficient 2-floor sustainable building model engineered for true Net-Zero operational performance.
+        Equipped with rooftop solar photovoltaic cells, lush insulating green roof, smart daylight-harvesting LEDs,
+        automated passive ventilation, and on-site rainwater harvesting.
+      </div>
+
+      <!-- Key Learning Points / Logic Summary -->
+      <div class="scene-bullets" id="scene-bullets">
+        <span class="bullet-tag"><i class="fa-solid fa-check"></i> 2-Floor Cutaway Cross-Section</span>
+        <span class="bullet-tag"><i class="fa-solid fa-check"></i> Integrated Renewable Energy</span>
+        <span class="bullet-tag"><i class="fa-solid fa-check"></i> Passive Cooling Envelope</span>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="deck-controls">
+        <button id="btn-prev-scene" class="deck-btn" title="Previous Scene">
+          <i class="fa-solid fa-backward-step"></i> Previous
+        </button>
+        <button id="btn-play-tour" class="deck-btn primary-deck-btn" title="Auto-Play Guided Tour">
+          <i class="fa-solid fa-play"></i> <span id="label-play-btn">Play Walkthrough</span>
+        </button>
+        <button id="btn-next-scene" class="deck-btn" title="Next Scene">
+          Next <i class="fa-solid fa-forward-step"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Academic Syllabus & Teacher Live Demonstration Modal -->
+  <div class="modal-backdrop" id="syllabus-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon"><i class="fa-solid fa-book-open"></i></div>
+          <div>
+            <h2>Syllabus Mapping &amp; Live Teacher Demo Guide</h2>
+            <p>Smart Net-Zero Energy Green Building • Full Working IoT Demonstration</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tab Navigation inside modal -->
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" data-tab="demo-script">
+            <i class="fa-solid fa-chalkboard-user"></i> Live Demo Script (To Show Teacher)
+          </button>
+          <button class="modal-tab-btn" data-tab="syllabus">
+            <i class="fa-solid fa-list-check"></i> Units 1 to 5 Syllabus Match
+          </button>
+          <button class="modal-tab-btn" data-tab="circuit">
+            <i class="fa-solid fa-network-wired"></i> Wiring &amp; Circuit Logic Flow
+          </button>
+          <button class="modal-tab-btn" data-tab="hardware">
+            <i class="fa-solid fa-microchip"></i> Hardware Components Bill
+          </button>
+        </div>
+
+        <!-- Tab 1: Live Demo Script -->
+        <div class="tab-pane active" id="pane-demo-script">
+          <div class="alert-box-info">
+            <i class="fa-solid fa-bullhorn text-cyan"></i>
+            <div>
+              <strong>How to Present this Live to Your Teacher / Examiner:</strong>
+              <p>Walk the examiner through the following 4 interactive tests in under 2 minutes. This proves it is a fully functioning smart engineering model, not just a static dollhouse!</p>
+            </div>
+          </div>
+
+          <div class="steps-flow">
+            <!-- Step 1 -->
+            <div class="step-card">
+              <div class="step-badge">TEST 1</div>
+              <div class="step-content">
+                <h4><i class="fa-solid fa-sun text-yellow"></i> 1. Smart Daylight Harvesting (LDR Test)</h4>
+                <p><strong>Action:</strong> Click <em>"Cover LDR Hand"</em> (or drag Time of Day slider to Night 9 PM).</p>
+                <div class="code-flow-box">
+                  <code>Daytime / Bright Sunlight &rarr; LDR Resistance Low &rarr; Controller detects &gt; 300 Lux &rarr; Room LED stays <strong>OFF (0W Wastage)</strong></code><br>
+                  <code>Cover LDR with Hand &rarr; LDR Resistance Skyrockets &rarr; Controller detects Darkness &rarr; Room LED snaps <strong>ON Automatically!</strong></code>
+                </div>
+                <p class="teacher-talk"><strong>What to say to the teacher:</strong> <em>"Respected Teacher, here our LDR sensor continuously measures ambient lux. When natural sunlight enters the window, the microcontroller automatically keeps the interior LED off to conserve energy. When daylight drops or night falls, the lights activate instantly."</em></p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+              <div class="step-badge">TEST 2</div>
+              <div class="step-content">
+                <h4><i class="fa-solid fa-person-walking text-blue"></i> 2. Occupancy Energy Preservation (PIR Sensor Test)</h4>
+                <p><strong>Action:</strong> Click <em>"Toggle PIR Motion"</em> to make a person leave or enter the room.</p>
+                <div class="code-flow-box">
+                  <code>Room Empty (No Motion) &rarr; Even if it's pitch dark outside, LED turns <strong>OFF</strong> to save power!</code><br>
+                  <code>Person enters room &rarr; Passive Infrared Sensor detects heat motion &rarr; LED turns <strong>ON</strong>.</code>
+                </div>
+                <p class="teacher-talk"><strong>What to say to the teacher:</strong> <em>"This is our dual-condition energy-saving logic: Lights only consume power when it is DARK AND OCCUPIED. If nobody is inside, no power is ever wasted."</em></p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+              <div class="step-badge">TEST 3</div>
+              <div class="step-content">
+                <h4><i class="fa-solid fa-temperature-arrow-up text-rose"></i> 3. Smart Microclimate &amp; Natural Cross-Ventilation (DHT11 + Fan + Servo Window)</h4>
+                <p><strong>Action:</strong> Click <em>"Heat DHT11 (34°C)"</em> button or drag Temperature slider above 28°C.</p>
+                <div class="code-flow-box">
+                  <code>Temp &lt; 28°C &rarr; Comfort Mode &rarr; Window CLOSED, Fan OFF</code><br>
+                  <code>Temp &ge; 28°C &rarr; DHT11 signals Microcontroller &rarr; <strong>SG90 Servo opens Window 45°</strong> for natural breeze + <strong>DC Fan turns ON</strong> to extract hot air!</code>
+                </div>
+                <p class="teacher-talk"><strong>What to say to the teacher:</strong> <em>"When the room overheats, the system first exploits passive cooling by motorized window louvers before running forced ventilation, drastically minimizing electricity consumption."</em></p>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+              <div class="step-badge">TEST 4</div>
+              <div class="step-content">
+                <h4><i class="fa-solid fa-leaf text-emerald"></i> 4. Green Roof Thermal Insulation &amp; Rainwater Harvesting</h4>
+                <p><strong>Action:</strong> Toggle <em>"Rainfall Weather"</em> and click <em>"Roof Strata"</em> inspection.</p>
+                <div class="code-flow-box">
+                  <code>Green Roof &rarr; Soil &amp; vegetation absorb solar irradiance &rarr; Lowers roof surface temperature by 5°C-8°C via evapotranspiration.</code><br>
+                  <code>Rainfall &rarr; Perimeter gutter collects runoff &rarr; Filter pipe channels water to ground tank &rarr; Reused for landscaping &amp; flushing.</code>
+                </div>
+                <p class="teacher-talk"><strong>What to say to the teacher:</strong> <em>"The green roof cuts HVAC cooling loads naturally, while the rainwater harvesting system turns stormwater runoff into a zero-cost water reservoir for our building."</em></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Syllabus Breakdown -->
+        <div class="tab-pane" id="pane-syllabus">
+          <div class="syllabus-grid">
+            <div class="unit-card">
+              <div class="unit-tag">UNIT 1</div>
+              <h3>Energy-Efficient Building Architecture</h3>
+              <p>Fundamentals of Net-Zero Energy Buildings (NZEB), orientation, energy benchmarking, building envelope insulation, and minimizing active loads.</p>
+              <ul class="unit-check-list">
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Net-Zero Equation: <code>Solar Energy Generated &ge; Total Energy Consumed</code></li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> High thermal mass walls and dual-pane insulated glazing</li>
+              </ul>
+            </div>
+
+            <div class="unit-card">
+              <div class="unit-tag">UNIT 2</div>
+              <h3>Solar Energy &amp; Passive Cooling</h3>
+              <p>Harnessing renewable solar photovoltaic (PV) generation and optimizing roof-tilt angles for maximum irradiance conversion.</p>
+              <ul class="unit-check-list">
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Monocrystalline PV rooftop array with battery storage</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Shading overhangs, thermal buffers, and passive stack ventilation</li>
+              </ul>
+            </div>
+
+            <div class="unit-card">
+              <div class="unit-tag">UNIT 3</div>
+              <h3>Temperature, Indoor Air Quality &amp; Ventilation</h3>
+              <p>Closed-loop microclimate feedback systems using digital environmental sensors and hybrid passive-active cooling.</p>
+              <ul class="unit-check-list">
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> DHT11 digital temperature and humidity measurement</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Servo-actuated motorized casement window for cross-breeze</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Variable-speed low-power brushless DC ceiling fan</li>
+              </ul>
+            </div>
+
+            <div class="unit-card">
+              <div class="unit-tag">UNIT 4</div>
+              <h3>Smart Lighting &amp; Daylight Harvesting</h3>
+              <p>Intelligent lighting control strategies integrating daylight availability and space occupancy sensing.</p>
+              <ul class="unit-check-list">
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Light Dependent Resistor (LDR) analog voltage divider circuit</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Pyroelectric Infrared (PIR) motion detection</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Boolean logic gate automation: <code>LIGHT = DARKNESS AND OCCUPIED</code></li>
+              </ul>
+            </div>
+
+            <div class="unit-card">
+              <div class="unit-tag">UNIT 5</div>
+              <h3>Green Roofs, Sustainability &amp; Rainwater Harvesting</h3>
+              <p>Ecological site development, urban heat island mitigation, stormwater retention, and sustainable resource closed-loops.</p>
+              <ul class="unit-check-list">
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Extensive vegetative green roof with drainage layer</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Gravity-fed roof rainwater catchment, downspout &amp; filtration tank</li>
+                <li><i class="fa-solid fa-check-circle text-emerald"></i> Non-potable water recycling for irrigation and sanitation</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Circuit & Wiring Logic -->
+        <div class="tab-pane" id="pane-circuit">
+          <div class="circuit-container">
+            <h3>Microcontroller System Architecture (Arduino Uno / ESP32)</h3>
+            <div class="flow-ascii-box">
+<pre>
+                        ☀️ SUNLIGHT
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  SOLAR PV PANEL │
+                    └────────┬────────┘
+                             │ (Clean DC Power)
+                             ▼
+                    ┌─────────────────┐
+                    │ CHARGE REGULATOR│──────► [ Li-Ion Battery Storage ]
+                    └────────┬────────┘
+                             │
+                             ▼
+              ┌───────────────────────────────┐
+              │  MICROCONTROLLER (ESP32/UNO)  │
+              └───────┬───────────────┬───────┘
+                      │               │
+     INPUT SENSORS    │               │    OUTPUT ACTUATORS
+  ┌───────────────────┴──┐         ┌──┴───────────────────────┐
+  │ • LDR (Pin A0)       │         │ • High-CRI LED (Pin D9)  │
+  │ • PIR Motion (Pin D2)│         │ • SG90 Servo (Pin D5)    │
+  │ • DHT11 Temp (Pin D4)│         │ • DC Fan Relay (Pin D6)  │
+  │ • Rain Sensor (Pin A1│         │ • Solenoid Valve (Pin D7)│
+  └──────────────────────┘         └──────────────────────────┘
+</pre>
+            </div>
+
+            <div class="circuit-table-wrap">
+              <table class="circuit-table">
+                <thead>
+                  <tr>
+                    <th>Component</th>
+                    <th>Type</th>
+                    <th>Microcontroller Pin</th>
+                    <th>Functional Logic Condition</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>LDR Sensor</strong></td>
+                    <td>Analog Input</td>
+                    <td>Pin A0</td>
+                    <td>Reads Lux. Triggers condition when Lux &lt; 300 (Night / Darkness).</td>
+                  </tr>
+                  <tr>
+                    <td><strong>PIR Sensor</strong></td>
+                    <td>Digital Input</td>
+                    <td>Pin D2</td>
+                    <td>Detects human infrared heat movement. HIGH when occupied.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Room LED Lights</strong></td>
+                    <td>Digital / PWM Output</td>
+                    <td>Pin D9</td>
+                    <td><code>IF (LDR &lt; 300 &amp;&amp; PIR == HIGH) &rarr; TURN ON; ELSE OFF;</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>DHT11 Sensor</strong></td>
+                    <td>Digital 1-Wire</td>
+                    <td>Pin D4</td>
+                    <td>Samples temperature (°C) and humidity (%RH) every 1.5 seconds.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>SG90 Servo Motor</strong></td>
+                    <td>PWM Servo</td>
+                    <td>Pin D5</td>
+                    <td><code>IF (Temp &ge; 28°C) write(90°) [OPEN]; ELSE write(0°) [CLOSED];</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Cooling Fan</strong></td>
+                    <td>Relay / MOSFET</td>
+                    <td>Pin D6</td>
+                    <td><code>IF (Temp &ge; 28°C) digitalWrite(HIGH); ELSE LOW;</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Hardware Bill of Materials -->
+        <div class="tab-pane" id="pane-hardware">
+          <div class="hardware-grid">
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-microchip"></i></div>
+              <div class="hw-details">
+                <strong>Arduino Uno R3 or ESP32 Wi-Fi</strong>
+                <span>Central microcontroller unit for sensor data processing and actuation.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-solar-panel"></i></div>
+              <div class="hw-details">
+                <strong>6V 1W-2W Monocrystalline Mini Solar Panel</strong>
+                <span>Mounts on roof. Generates 5V-6V DC in bright sunlight for clean energy.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-sun"></i></div>
+              <div class="hw-details">
+                <strong>5mm LDR Light Dependent Resistor + 10kΩ Resistor</strong>
+                <span>Forms an analog voltage divider circuit to detect ambient daylight illumination.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-person-walking"></i></div>
+              <div class="hw-details">
+                <strong>HC-SR501 or AM312 PIR Infrared Motion Sensor</strong>
+                <span>Detects human presence within 3-7 meters via Fresnel lens.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-temperature-half"></i></div>
+              <div class="hw-details">
+                <strong>DHT11 Digital Temperature &amp; Humidity Sensor</strong>
+                <span>Measures room temperature from 0°C to 50°C (±2°C) and relative humidity.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-gears"></i></div>
+              <div class="hw-details">
+                <strong>TowerPro SG90 9g Micro Servo Motor</strong>
+                <span>Mechanically pivots the automatic cross-ventilation window sash open and closed.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-fan"></i></div>
+              <div class="hw-details">
+                <strong>5V DC Miniature Brushless Fan + 2N2222 Transistor / Relay</strong>
+                <span>Ventilates warm indoor air when ambient temperature exceeds comfortable setpoint.</span>
+              </div>
+            </div>
+            <div class="hw-item">
+              <div class="hw-icon"><i class="fa-solid fa-droplet"></i></div>
+              <div class="hw-details">
+                <strong>Clear Acrylic Tank + Vinyl Tubing + Artificial Turf</strong>
+                <span>Physical scale modeling for rainwater collection downspout and rooftop grass garden.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="pill-btn primary" id="btn-close-modal-bottom">Got it, Back to 3D Simulation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
+
